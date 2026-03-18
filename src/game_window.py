@@ -99,9 +99,10 @@ class GameWindow(QMainWindow):
         """Start the training mode with easy AI and hint system."""
         print("Training Mode started vs Easy AI")
         self.training_mode = True
-        self.start_game(vs_bot=True, difficulty="easy")
+        # Use red_player image for training mode AI (not the green easy bot)
+        self.start_game(vs_bot=True, difficulty="easy", use_red_player_image=True)
 
-    def start_game(self, vs_bot=False,difficulty=None):
+    def start_game(self, vs_bot=False, difficulty=None, use_red_player_image=False):
         """Start or Restart the game with the option to play vs a bot."""
         # Remove the current scene and create a new one
         self.scene = GridScene(game=self)
@@ -128,7 +129,10 @@ class GameWindow(QMainWindow):
         blue_player_image_path = resource_path('resources/images/blue_player.png')
 
         if vs_bot:
-            if difficulty == 'easy':
+            if use_red_player_image:
+                # For training mode, use red player image instead of bot images
+                red_player_image_path = resource_path('resources/images/red_player.png')
+            elif difficulty == 'easy':
                 red_player_image_path = resource_path('resources/images/easy_bot.png')
             elif difficulty == 'medium':
                 red_player_image_path = resource_path('resources/images/medium_bot.png')
@@ -267,3 +271,6 @@ class GameWindow(QMainWindow):
 
         # Calculate and display hint
         self.scene.show_hint()
+
+        # Set focus back to the view so arrow keys continue to work
+        self.view.setFocus()
