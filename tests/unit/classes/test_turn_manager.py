@@ -19,9 +19,12 @@ class MockGame:
     """Mock game object for testing."""
     def __init__(self):
         self.scene = MockScene()
+        self.turn_manager = None  # Will be set when TurnManager is initialized
         self.win_game_called = False
         self.draw_game_called = False
         self.winner = None
+        self.grid_size = 9
+        self.cell_size = 50
 
     def win_game(self, player):
         self.win_game_called = True
@@ -33,19 +36,19 @@ class MockGame:
     def change_turn(self, color):
         pass
 
-
 class MockScene:
     """Mock scene object for testing."""
     def __init__(self):
         self.mouse_events_enabled = True
         self.grid_size = 9
+        self.current_blocked_roads = []
+        self.placed_walls = []
 
     def clear_possible_moves(self):
         pass
 
     def disable_mouse_events(self):
         self.mouse_events_enabled = False
-
 
 class MockPlayer:
     """Mock player for testing."""
@@ -54,6 +57,10 @@ class MockPlayer:
         self.flags_enabled = False
         self.turn_active = False
         self.won = False
+        self.available_walls = 10
+        self.row = 4
+        self.col = 4
+        self.goal_col = 0 if color == 'red' else 8
 
     def on_turn(self):
         self.turn_active = True
@@ -64,7 +71,6 @@ class MockPlayer:
     def set_flags(self, flag):
         self.flags_enabled = flag
 
-
 class TestTurnManagerInitialization:
     """Tests for TurnManager initialization."""
 
@@ -72,6 +78,7 @@ class TestTurnManagerInitialization:
         """Test TurnManager initialization."""
         game = MockGame()
         tm = TurnManager(game, 'blue')
+        game.turn_manager = tm
 
         assert tm.current_turn == 'blue'
         assert tm.red_player is None
@@ -101,6 +108,7 @@ class TestTurnManagerPlayerRegistration:
         """Test registering players."""
         red = MockPlayer('red')
         blue = MockPlayer('blue')
+        turn_manager.game.turn_manager = turn_manager
 
         turn_manager.register_players(red, blue)
 
@@ -123,6 +131,7 @@ class TestTurnManagerTurnSwitching:
         """Create a TurnManager with registered players."""
         game = MockGame()
         tm = TurnManager(game, 'blue')
+        game.turn_manager = tm
         tm.scene = MockScene()
         tm.red_player = MockPlayer('red')
         tm.blue_player = MockPlayer('blue')

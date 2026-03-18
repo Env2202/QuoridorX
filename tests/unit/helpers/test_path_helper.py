@@ -271,28 +271,28 @@ class TestClearCache:
 
     def test_clear_cache_reduces_size(self):
         """Test that clear_cache reduces cache size when over limit."""
-        global cache
+        from helpers import path_helper as ph
         # Fully clear the cache first
-        cache.clear()
+        ph.cache.clear()
 
         # Populate cache with many entries
         for i in range(1100):
-            cache[f'key_{i}'] = f'value_{i}'
+            ph.cache[f'key_{i}'] = f'value_{i}'
 
-        assert len(cache) == 1100
+        assert len(ph.cache) == 1100
 
-        clear_cache()
+        ph.clear_cache()
 
         # Cache should be reduced to 1000 entries
-        assert len(cache) == 1000
+        assert len(ph.cache) == 1000
 
     def test_clear_cache_preserves_small_cache(self):
         """Test that clear_cache doesn't affect small caches."""
-        global cache
+        from helpers import path_helper as ph
         # Fully clear the cache first
-        cache.clear()
-        cache['test_key'] = 'test_value'
+        ph.cache.clear()
+        ph.cache['test_key'] = 'test_value'
 
-        clear_cache()
+        ph.clear_cache()
 
-        assert 'test_key' in cache
+        assert 'test_key' in ph.cache
