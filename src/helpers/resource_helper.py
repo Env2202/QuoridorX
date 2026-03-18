@@ -8,4 +8,6 @@ def resource_path(relative_path):
         return os.path.join(sys._MEIPASS, relative_path)
     else:
         # Otherwise, return the relative path for development
-        return os.path.join(os.path.abspath("../"), relative_path)
+        # Get the directory of the current file (src/helpers)
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        return os.path.join(base_dir, relative_path)

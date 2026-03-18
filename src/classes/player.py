@@ -53,15 +53,10 @@ class Player(QGraphicsRectItem):
 
         # Check if pixmap loaded successfully
         if pixmap.isNull():
-            print(f"Warning: Failed to load image: {image_path}")
-            # Create a colored rectangle as fallback
-            if self.color == 'blue':
-                fallback_color = QColor(0, 100, 255)
-            elif self.color == 'red':
-                fallback_color = QColor(255, 50, 50)
-            else:
-                fallback_color = QColor(128, 128, 128)
-            self.setBrush(fallback_color)
+            # print(f"Warning: Failed to load image: {image_path}")
+            # NO FALLBACK SQUARE - just show nothing if image is missing
+            # (The user will see the valid move dots instead)
+            pass
         else:
             pixmap = pixmap.scaled(cell_size - offset, cell_size - offset)
             self.pixmap_item.setPixmap(pixmap)
