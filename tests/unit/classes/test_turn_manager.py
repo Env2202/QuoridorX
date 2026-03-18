@@ -117,6 +117,8 @@ class TestTurnManagerPlayerRegistration:
         blue = MockPlayer('blue')
         turn_manager.game.red_player = red
         turn_manager.game.blue_player = blue
+        # Register scene before players because register_players calls start_turn() which needs it
+        turn_manager.register_scene(turn_manager.game.scene)
 
         turn_manager.register_players(red, blue)
 
