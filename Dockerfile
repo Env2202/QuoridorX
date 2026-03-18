@@ -5,10 +5,17 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     python3-virtualenv \
     python3-venv \
+    libglib2.0-0 \
+    libsm6 \
+    libice6 \
     libgl1 \
     libegl1 \
     libdbus-1-3 \
     libfontconfig1 \
+    libopengl0 \
+    libxrender1 \
+    libxext6 \
+    libxi6 \
     libx11-xcb1 \
     libxkbcommon-x11-0 \
     libxcb-cursor0 \
@@ -22,7 +29,7 @@ RUN apt-get update && apt-get install -y \
     libxcb-xfixes0 \
     --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
-ENV COMMIT_HASH=01123109d50d4d3ac791b13d4c737e5196a25c78
+ENV COMMIT_HASH=b150a73ed24cce9f114d047cc3791d55cf304d51
 ENV REPO_URL=https://github.com/Env2202/QuoridorX.git
 ENV REPO_NAME=QuoridorX
 ENV VENV_PATH=/opt/venv
