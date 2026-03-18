@@ -38,6 +38,7 @@ class MockScene:
     """Mock scene object for testing."""
     def __init__(self):
         self.mouse_events_enabled = True
+        self.grid_size = 9
 
     def clear_possible_moves(self):
         pass
@@ -236,20 +237,28 @@ class TestTurnManagerDrawCheck:
         assert result is False
 
     def test_draw_check_with_repetition(self, turn_manager):
-        """Test draw check with threefold repetition."""
-        tm = turn_manager
-        # Create a pattern that repeats 3 times
-        move1 = ('move', (4, 1))
-        move2 = ('move', (4, 7))
-        move3 = ('move', (4, 2))
-        move4 = ('move', (4, 6))
-        move5 = ('move', (4, 3))
-        move6 = ('move', (4, 5))
+        """Test draw check with threefold repetition.
 
-        # Repeat the pattern twice more
+        The draw check looks for ABABAB pattern where:
+        - first_pair (0-1) == third_pair (4-5) == fifth_pair (8-9)
+        - second_pair (2-3) == fourth_pair (6-7) == sixth_pair (10-11)
+        """
+        tm = turn_manager
+        # Create pairs of moves that repeat
+        pair_a = ('move', (4, 1))
+        pair_b = ('move', (4, 7))
+        pair_c = ('move', (4, 2))
+        pair_d = ('move', (4, 6))
+
+        # Pattern: A, B, A, B, A, B (where each is a pair)
+        # Positions: 0-1, 2-3, 4-5, 6-7, 8-9, 10-11
         tm.move_history = [
-            move1, move2, move3, move4, move5, move6,
-            move1, move2, move3, move4, move5, move6,
+            pair_a, pair_b,  # first_pair (0-1)
+            pair_c, pair_d,  # second_pair (2-3)
+            pair_a, pair_b,  # third_pair (4-5) - same as first
+            pair_c, pair_d,  # fourth_pair (6-7) - same as second
+            pair_a, pair_b,  # fifth_pair (8-9) - same as first
+            pair_c, pair_d,  # sixth_pair (10-11) - same as second
         ]
 
         result = tm.draw_check()

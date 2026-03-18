@@ -271,8 +271,11 @@ class TestClearCache:
 
     def test_clear_cache_reduces_size(self):
         """Test that clear_cache reduces cache size when over limit."""
+        global cache
+        # Fully clear the cache first
+        cache.clear()
+
         # Populate cache with many entries
-        clear_cache()
         for i in range(1100):
             cache[f'key_{i}'] = f'value_{i}'
 
@@ -285,7 +288,9 @@ class TestClearCache:
 
     def test_clear_cache_preserves_small_cache(self):
         """Test that clear_cache doesn't affect small caches."""
-        clear_cache()
+        global cache
+        # Fully clear the cache first
+        cache.clear()
         cache['test_key'] = 'test_value'
 
         clear_cache()

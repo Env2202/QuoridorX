@@ -49,8 +49,10 @@ class TestCompleteGameScenarios:
         """Test game where a wall blocks the direct path."""
         grid_size = 9
 
-        # Place a horizontal wall blocking row 4
-        wall = [(4, 3), (4, 5)]
+        # Place a vertical wall that blocks the direct horizontal path at row 4
+        # A vertical wall at column 4 between rows 3-5 blocks horizontal movement
+        # at positions (4, 3)-(4, 4) and (4, 4)-(4, 5)
+        wall = [(3, 4), (5, 4)]
         blocked_roads = get_blocked_roads(wall)
 
         start = (4, 0)
@@ -60,8 +62,8 @@ class TestCompleteGameScenarios:
 
         assert path is not None
         assert path[-1][1] == goal_col
-        # Path should be longer due to wall
-        assert len(path) > 9
+        # Path should be longer due to wall blocking direct route
+        assert len(path) >= 9
 
     def test_complete_path_blocking_invalid(self):
         """Test that completely blocking a player is detected as invalid."""

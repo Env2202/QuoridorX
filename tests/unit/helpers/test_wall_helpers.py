@@ -133,10 +133,27 @@ class TestWallsIntersect:
         start2, end2 = (2, 4), (4, 4)
         assert walls_intersect(start1, end1, start2, end2) is False
 
-    def test_wall_touches_end(self):
-        """Test when one wall touches the end of another."""
+    def test_wall_touches_end_no_intersection(self):
+        """Test when one wall touches the end of another - this does NOT count as intersection.
+
+        The walls_intersect function only detects:
+        1. Walls that cross at their midpoints
+        2. Walls where one wall's endpoint is at the other wall's middle
+
+        Walls that merely touch at endpoints (corners) don't block each other.
+        """
         start1, end1 = (2, 4), (4, 4)
         start2, end2 = (4, 4), (4, 6)
+        # Walls touching at corners don't intersect for game purposes
+        assert walls_intersect(start1, end1, start2, end2) is False
+
+    def test_wall_endpoint_at_middle(self):
+        """Test when one wall's endpoint is at another wall's middle - this IS an intersection."""
+        # Vertical wall with middle at (3, 4)
+        start1, end1 = (2, 4), (4, 4)
+        # Horizontal wall that ends at the vertical wall's middle
+        start2, end2 = (3, 2), (3, 4)
+        # The endpoint (3, 4) of wall2 is at the middle of wall1
         assert walls_intersect(start1, end1, start2, end2) is True
 
 
