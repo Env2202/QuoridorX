@@ -47,9 +47,22 @@ class Player(QGraphicsRectItem):
         # Create the pixmap (image) and scale it to fit within the rectangle
         self.pixmap_item = QGraphicsPixmapItem(self)
         pixmap = QPixmap(image_path)
-        pixmap = pixmap.scaled(cell_size - offset, cell_size - offset)
-        self.pixmap_item.setPixmap(pixmap)
-        self.pixmap_item.setOffset(offset / 2, offset / 2)  # Center the pixmap within the rectangle
+
+        # Check if pixmap loaded successfully
+        if pixmap.isNull():
+            print(f"Warning: Failed to load image: {image_path}")
+            # Create a colored rectangle as fallback
+            if self.color == 'blue':
+                fallback_color = QColor(0, 100, 255)
+            elif self.color == 'red':
+                fallback_color = QColor(255, 50, 50)
+            else:
+                fallback_color = QColor(128, 128, 128)
+            self.setBrush(fallback_color)
+        else:
+            pixmap = pixmap.scaled(cell_size - offset, cell_size - offset)
+            self.pixmap_item.setPixmap(pixmap)
+            self.pixmap_item.setOffset(offset / 2, offset / 2)  # Center the pixmap within the rectangle
 
     def set_flags(self, flag):
         """Enable or disable movement and selection of the player."""

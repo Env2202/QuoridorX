@@ -7,6 +7,7 @@ from PyQt6.QtWidgets import QApplication, QGraphicsView, QMainWindow, QWidget, Q
 from bot.bot import Bot
 from helpers.path_helper import clear_cache
 from helpers.resource_helper import resource_path
+from helpers.grid_helpers import grid_to_scene
 from ui.layouts import create_start_buttons_layout, create_game_items_layout, create_win_buttons_layout, \
     create_ai_difficulty_layout
 from classes.grid_scene import GridScene
@@ -184,6 +185,17 @@ class GameWindow(QMainWindow):
         self.scene.red_player = self.red_player
         self.scene.addItem(self.blue_player)
         self.scene.addItem(self.red_player)
+
+        # Ensure both players are visible and properly positioned
+        self.blue_player.setVisible(True)
+        self.red_player.setVisible(True)
+        self.blue_player.setPos(grid_to_scene(self.blue_player.row, self.blue_player.col, self.cell_size))
+        self.red_player.setPos(grid_to_scene(self.red_player.row, self.red_player.col, self.cell_size))
+
+        # Force scene update to ensure players are rendered
+        self.scene.update()
+        self.view.update()
+
         self.turn_manager.reset_turn()
 
         # Register players in the turn manager
