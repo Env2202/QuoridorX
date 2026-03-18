@@ -463,7 +463,10 @@ class GridScene(QGraphicsScene):
         """Remove any hint indicators from the scene."""
         if hasattr(self, 'hint_items'):
             for item in self.hint_items:
-                self.removeItem(item)
+                try:
+                    self.removeItem(item)
+                except:
+                    pass
             self.hint_items = []
 
     def show_hint(self):
@@ -481,67 +484,151 @@ class GridScene(QGraphicsScene):
         if not game_state:
             return
 
-        # Calculate best move using shortest path
-        start_pos = (current_player.row, current_player.col)
-        goal_col = current_player.goal_col
+        # Use the minimax bot logic to find the best move
+        # We'll use a reasonable depth for hints
+        search_depth = 5
+        
+        # Initialize variables for minimax
+        maximizing_player_color = current_player.color
+        opponent_color = game_state.get_opponent_color(maximizing_player_color)
+        opponent_player = game_state.get_player_by_color(opponent_color)
 
-        shortest_path = bfs_pathfinder(
-            start_pos,
-            goal_col,
-            self.grid_size,
-            self.current_blocked_roads
+        from bot.bot_helper import get_intelligent_moves, minimax
+        
+        # Get moves based on difficulty logic
+        intelligent_moves, other_moves = get_intelligent_moves(
+            game_state, current_player, self.grid_size, 
+            self.current_blocked_roads, current_player.available_walls
         )
+        
+        ordered_moves = intelligent_moves + other_moves
+        if not ordered_moves:
+            # Fallback to basic moves
+            valid_moves = get_valid_moves_helper(current_player, opponent_player, self.grid_size, self.current_blocked_roads)
+            ordered_moves = list(valid_moves.items())
 
-        if not shortest_path or len(shortest_path) < 2:
+        if not ordered_moves:
             return
 
-        # The best move is the next position in the shortest path
-        hint_pos = shortest_path[1]  # Index 0 is current position, 1 is next
+        best_move = None
+        best_type = None
+        best_value = float('-inf')
+        alpha = float('-inf')
+        beta = float('inf')
+
+        for type, move in ordered_moves:
+            game_state_copy = game_state.simulate_move_or_wall(type, move, current_player)
+            nodes_examined = {'count': 0}
+
+            move_value, _ = minimax(
+                game_state_copy,
+                search_depth - 1,
+                alpha,
+                beta,
+                maximizing_player_color,
+                opponent_color,
+                nodes_examined,
+                difficulty='hard', # Use hard difficulty for better hints
+                move_sequence=[],
+            )
+
+            if move_value > best_value:
+                best_value = move_value
+                best_type = type
+                best_move = move
+                alpha = max(alpha, move_value)
+
+        if not best_move:
+            # Fallback to BFS shortest path if minimax failed
+            start_pos = (current_player.row, current_player.col)
+            goal_col = current_player.goal_col
+            shortest_path = bfs_pathfinder(start_pos, goal_col, self.grid_size, self.current_blocked_roads)
+            if shortest_path and len(shortest_path) > 1:
+                best_type = 'move'
+                best_move = shortest_path[1]
+            else:
+                return
 
         # Visual indicator for hint
         self.hint_items = []
 
-        # Draw a glowing gold circle at the hint position
-        ellipse_size = 20
-        offset = (self.cell_size // 2) - ellipse_size // 2
-        scene_pos = grid_to_scene(hint_pos[0], hint_pos[1], self.cell_size)
+        if best_type == 'wall':
+            # Draw a wall hint
+            wall_start, wall_end = best_move
+            start_pos = grid_to_scene(wall_start[0], wall_start[1], self.cell_size)
+            end_pos = grid_to_scene(wall_end[0], wall_end[1], self.cell_size)
+            
+            rect_x = min(start_pos.x(), end_pos.x())
+            rect_y = min(start_pos.y(), end_pos.y())
+            rect_width = abs(end_pos.x() - start_pos.x())
+            rect_height = abs(end_pos.y() - start_pos.y())
+            
+            wall_thickness = 6
+            if rect_width > rect_height:
+                rect_height = wall_thickness
+            else:
+                rect_width = wall_thickness
+                
+            # Pulsing gold wall
+            hint_wall = QGraphicsRectItem(rect_x, rect_y, rect_width, rect_height)
+            hint_wall.setPen(QPen(QColor(255, 215, 0), 2))
+            hint_wall.setBrush(QColor(255, 215, 0, 150))
+            hint_wall.setZValue(5)
+            self.addItem(hint_wall)
+            self.hint_items.append(hint_wall)
+            
+            # Label near the wall
+            text_item = QGraphicsTextItem("HINT: WALL")
+            text_item.setDefaultTextColor(QColor(255, 215, 0))
+            text_item.setFont(QFont('Arial', 10, QFont.Weight.Bold))
+            text_item.setPos(rect_x, rect_y - 20)
+            text_item.setZValue(6)
+            self.addItem(text_item)
+            self.hint_items.append(text_item)
+            
+        else:
+            # Draw a move hint
+            hint_pos = best_move
+            ellipse_size = 20
+            offset = (self.cell_size // 2) - ellipse_size // 2
+            scene_pos = grid_to_scene(hint_pos[0], hint_pos[1], self.cell_size)
 
-        # Outer glow (larger, semi-transparent)
-        outer_ellipse = self.addEllipse(
-            scene_pos.x() + offset - 5,
-            scene_pos.y() + offset - 5,
-            ellipse_size + 10,
-            ellipse_size + 10,
-            QPen(QColor(255, 215, 0, 128), 2)
-        )
-        outer_ellipse.setBrush(QColor(255, 215, 0, 100))
-        outer_ellipse.setZValue(2)
-        self.hint_items.append(outer_ellipse)
+            # Outer glow
+            outer_ellipse = self.addEllipse(
+                scene_pos.x() + offset - 5,
+                scene_pos.y() + offset - 5,
+                ellipse_size + 10,
+                ellipse_size + 10,
+                QPen(QColor(255, 215, 0, 128), 2)
+            )
+            outer_ellipse.setBrush(QColor(255, 215, 0, 100))
+            outer_ellipse.setZValue(2)
+            self.hint_items.append(outer_ellipse)
 
-        # Inner circle (solid gold)
-        inner_ellipse = self.addEllipse(
-            scene_pos.x() + offset,
-            scene_pos.y() + offset,
-            ellipse_size,
-            ellipse_size,
-            QPen(QColor(255, 215, 0), 2)
-        )
-        inner_ellipse.setBrush(QColor(255, 215, 0, 200))
-        inner_ellipse.setZValue(3)
-        self.hint_items.append(inner_ellipse)
+            # Inner circle
+            inner_ellipse = self.addEllipse(
+                scene_pos.x() + offset,
+                scene_pos.y() + offset,
+                ellipse_size,
+                ellipse_size,
+                QPen(QColor(255, 215, 0), 2)
+            )
+            inner_ellipse.setBrush(QColor(255, 215, 0, 200))
+            inner_ellipse.setZValue(3)
+            self.hint_items.append(inner_ellipse)
 
-        # Add "HINT" text label
-        text_item = QGraphicsTextItem("HINT")
-        text_item.setDefaultTextColor(QColor(255, 215, 0))
-        text_item.setFont(QFont('Arial', 10, QFont.Weight.Bold))
-        text_bounds = text_item.boundingRect()
-        text_item.setPos(
-            scene_pos.x() + (self.cell_size - text_bounds.width()) / 2,
-            scene_pos.y() + (self.cell_size - text_bounds.height()) / 2 - 25
-        )
-        text_item.setZValue(4)
-        self.hint_items.append(text_item)
+            # Add "HINT" text label
+            text_item = QGraphicsTextItem("HINT: MOVE")
+            text_item.setDefaultTextColor(QColor(255, 215, 0))
+            text_item.setFont(QFont('Arial', 10, QFont.Weight.Bold))
+            text_bounds = text_item.boundingRect()
+            text_item.setPos(
+                scene_pos.x() + (self.cell_size - text_bounds.width()) / 2,
+                scene_pos.y() + (self.cell_size - text_bounds.height()) / 2 - 25
+            )
+            text_item.setZValue(4)
+            self.hint_items.append(text_item)
 
-        print(f"Hint: Move to position {hint_pos}")
+        print(f"Hint: {best_type} at {best_move}")
 
 
