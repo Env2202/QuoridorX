@@ -2,7 +2,7 @@ import sys
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QApplication, QGraphicsView, QMainWindow, QWidget, QHBoxLayout
+from PyQt6.QtWidgets import QApplication, QGraphicsView, QMainWindow, QWidget, QHBoxLayout, QPushButton
 
 from bot.bot import Bot
 from helpers.path_helper import clear_cache
@@ -70,6 +70,7 @@ class GameWindow(QMainWindow):
         self.red_player = None
         self.vs_bot = False
         self.bot_difficulty = None
+        self.training_mode = False
 
     def center_window(self):
         """Center the window on the screen using QStyle::alignedRect."""
@@ -94,9 +95,10 @@ class GameWindow(QMainWindow):
         self.difficulty_buttons_container.show()
 
     def start_training_mode(self):
-        """Start the training mode (no-op for now)."""
-        print("Training Mode started (no-op)")
-        pass
+        """Start the training mode with easy AI and hint system."""
+        print("Training Mode started vs Easy AI")
+        self.training_mode = True
+        self.start_game(vs_bot=True, difficulty="easy")
 
     def start_game(self, vs_bot=False,difficulty=None):
         """Start or Restart the game with the option to play vs a bot."""
@@ -113,6 +115,11 @@ class GameWindow(QMainWindow):
         self.start_buttons_container.hide()
         self.win_buttons_container.hide()
         self.game_items_container.show()
+
+        # Show/hide hint button based on training mode
+        hint_button = self.game_items_container.findChild(QPushButton, "hint_button")
+        if hint_button:
+            hint_button.setVisible(self.training_mode)
 
         # Clear the pathfinding cache
         clear_cache()
@@ -203,6 +210,7 @@ class GameWindow(QMainWindow):
             bot_worker.wait()
         self.vs_bot = False
         self.difficulty=None
+        self.training_mode = False
         self.difficulty_buttons_container.hide()
         self.game_items_container.hide()
         self.win_buttons_container.hide()
@@ -234,3 +242,16 @@ class GameWindow(QMainWindow):
 
     def show_rules(self):
         self.scene.toggle_rules()
+
+    def show_hint(self):
+        """Show a hint for the current player's best move."""
+        if not self.training_mode:
+            return
+
+        # Only show hints during human player's turn (blue)
+        current_player = self.turn_manager.get_current_player()
+        if current_player.color != 'blue':
+            return
+
+        # Calculate and display hint
+        self.scene.show_hint()

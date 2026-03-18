@@ -1,6 +1,6 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon, QPixmap, QFont
-from PyQt6.QtWidgets import QVBoxLayout, QPushButton, QLCDNumber, QLabel, QWidget, QSizePolicy
+from PyQt6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QLCDNumber, QLabel, QWidget, QSizePolicy
 
 from helpers.resource_helper import resource_path
 
@@ -144,6 +144,16 @@ def create_game_items_layout(game):
     # Add a spacer/stretch so the content expands to fill the remaining space
     layout.addStretch(1)
 
+    # Hint button (only visible in training mode)
+    hint_button = QPushButton("💡 Hint")
+    hint_button.setObjectName("hint_button")  # For finding it later
+    hint_button.clicked.connect(game.show_hint)
+    hint_button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+    hint_button.setStyleSheet("color: gold; border: 2px solid gold;")
+    hint_button.hide()  # Hidden by default, shown only in training mode
+    layout.addWidget(hint_button)
+
+    # Bottom buttons layout (Rules at bottom left)
     show_rules_button = QPushButton("  Rules")
     show_rules_button.clicked.connect(game.show_rules)
     layout.setAlignment(show_rules_button, Qt.AlignmentFlag.AlignBottom)

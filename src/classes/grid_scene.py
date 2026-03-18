@@ -4,6 +4,8 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPen, QColor, QFont
 from helpers.grid_helpers import grid_to_scene, scene_to_grid
 from helpers.wall_helpers import order_walls, get_blocked_roads, is_valid_wall
+from helpers.path_helper import bfs_pathfinder
+from helpers.valid_moves_helper import get_valid_moves_helper
 
 class GridScene(QGraphicsScene):
     def __init__(self, game):
@@ -228,6 +230,8 @@ class GridScene(QGraphicsScene):
             self.turn_manager.get_current_player().available_walls -= 1
             self.game.update_wall_count()
             move = ('wall',wall)
+            # Clear any hint when player places a wall
+            self.clear_hint()
             # Check if custom start and end positions were provided and render the wall if true
             if custom_start and custom_end:
                 start_pos = grid_to_scene(start_row, start_col, self.cell_size)
@@ -454,5 +458,90 @@ class GridScene(QGraphicsScene):
             self.rules_container.show()
         else:
             self.rules_container.hide()
+
+    def clear_hint(self):
+        """Remove any hint indicators from the scene."""
+        if hasattr(self, 'hint_items'):
+            for item in self.hint_items:
+                self.removeItem(item)
+            self.hint_items = []
+
+    def show_hint(self):
+        """Show a hint for the best move for the current player."""
+        # Clear any existing hint
+        self.clear_hint()
+
+        # Get current game state
+        current_player = self.turn_manager.get_current_player()
+        if not current_player:
+            return
+
+        # Get the game state
+        game_state = self.turn_manager.game_state
+        if not game_state:
+            return
+
+        # Calculate best move using shortest path
+        start_pos = (current_player.row, current_player.col)
+        goal_col = current_player.goal_col
+
+        shortest_path = bfs_pathfinder(
+            start_pos,
+            goal_col,
+            self.grid_size,
+            self.current_blocked_roads
+        )
+
+        if not shortest_path or len(shortest_path) < 2:
+            return
+
+        # The best move is the next position in the shortest path
+        hint_pos = shortest_path[1]  # Index 0 is current position, 1 is next
+
+        # Visual indicator for hint
+        self.hint_items = []
+
+        # Draw a glowing gold circle at the hint position
+        ellipse_size = 20
+        offset = (self.cell_size // 2) - ellipse_size // 2
+        scene_pos = grid_to_scene(hint_pos[0], hint_pos[1], self.cell_size)
+
+        # Outer glow (larger, semi-transparent)
+        outer_ellipse = self.addEllipse(
+            scene_pos.x() + offset - 5,
+            scene_pos.y() + offset - 5,
+            ellipse_size + 10,
+            ellipse_size + 10,
+            QPen(QColor(255, 215, 0, 128), 2)
+        )
+        outer_ellipse.setBrush(QColor(255, 215, 0, 100))
+        outer_ellipse.setZValue(2)
+        self.hint_items.append(outer_ellipse)
+
+        # Inner circle (solid gold)
+        inner_ellipse = self.addEllipse(
+            scene_pos.x() + offset,
+            scene_pos.y() + offset,
+            ellipse_size,
+            ellipse_size,
+            QPen(QColor(255, 215, 0), 2)
+        )
+        inner_ellipse.setBrush(QColor(255, 215, 0, 200))
+        inner_ellipse.setZValue(3)
+        self.hint_items.append(inner_ellipse)
+
+        # Add "HINT" text label
+        text_item = QGraphicsTextItem("HINT")
+        text_item.setDefaultTextColor(QColor(255, 215, 0))
+        text_item.setFont(QFont('Arial', 10, QFont.Weight.Bold))
+        text_bounds = text_item.boundingRect()
+        text_item.setPos(
+            scene_pos.x() + (self.cell_size - text_bounds.width()) / 2,
+            scene_pos.y() + (self.cell_size - text_bounds.height()) / 2 - 25
+        )
+        text_item.setZValue(4)
+        self.hint_items.append(text_item)
+
+        print(f"Hint: Move to position {hint_pos}")
 
 
