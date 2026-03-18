@@ -93,6 +93,11 @@ class GameWindow(QMainWindow):
         self.start_buttons_container.hide()
         self.difficulty_buttons_container.show()
 
+    def start_training_mode(self):
+        """Start the training mode (no-op for now)."""
+        print("Training Mode started (no-op)")
+        pass
+
     def start_game(self, vs_bot=False,difficulty=None):
         """Start or Restart the game with the option to play vs a bot."""
         # Remove the current scene and create a new one

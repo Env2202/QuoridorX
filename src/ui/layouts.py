@@ -25,9 +25,16 @@ def create_start_buttons_layout(game):
     versus_ai_button.clicked.connect(game.select_difficulty)
     versus_ai_button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
+    training_mode_button = QPushButton("  Training Mode")
+    training_mode_icon = QIcon(QPixmap(resource_path('resources/images/icons/ai.svg'))) # Using AI icon for now
+    training_mode_button.setIcon(training_mode_icon)
+    training_mode_button.clicked.connect(game.start_training_mode)
+    training_mode_button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+
     # Add widgets to layout
     layout.addWidget(two_players_button)
     layout.addWidget(versus_ai_button)
+    layout.addWidget(training_mode_button)
 
     # Make sure the layout expands to fill the entire height
     layout.addStretch(1)
