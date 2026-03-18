@@ -44,6 +44,9 @@ class Player(QGraphicsRectItem):
 
         self.set_flags(False)  # Disable movement by default
 
+        # Set transparent brush by default (so only pixmap shows, no background rectangle)
+        self.setBrush(QColor(0, 0, 0, 0))
+
         # Create the pixmap (image) and scale it to fit within the rectangle
         self.pixmap_item = QGraphicsPixmapItem(self)
         pixmap = QPixmap(image_path)
