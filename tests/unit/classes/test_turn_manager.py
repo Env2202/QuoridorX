@@ -20,6 +20,8 @@ class MockGame:
     def __init__(self):
         self.scene = MockScene()
         self.turn_manager = None  # Will be set when TurnManager is initialized
+        self.red_player = None
+        self.blue_player = None
         self.win_game_called = False
         self.draw_game_called = False
         self.winner = None
@@ -43,6 +45,7 @@ class MockScene:
         self.grid_size = 9
         self.current_blocked_roads = []
         self.placed_walls = []
+        self.keyPressed = False
 
     def clear_possible_moves(self):
         pass
@@ -59,8 +62,9 @@ class MockPlayer:
         self.won = False
         self.available_walls = 10
         self.row = 4
-        self.col = 4
-        self.goal_col = 0 if color == 'red' else 8
+        self.col = 4 if color == 'blue' else 0
+        self.goal_col = 8 if color == 'blue' else 0
+        self.bot = False
 
     def on_turn(self):
         self.turn_active = True
@@ -91,6 +95,7 @@ class TestTurnManagerInitialization:
         """Test TurnManager initialization with red starting."""
         game = MockGame()
         tm = TurnManager(game, 'red')
+        game.turn_manager = tm
 
         assert tm.current_turn == 'red'
 
@@ -102,13 +107,16 @@ class TestTurnManagerPlayerRegistration:
     def turn_manager(self):
         """Create a TurnManager for testing."""
         game = MockGame()
-        return TurnManager(game, 'blue')
+        tm = TurnManager(game, 'blue')
+        game.turn_manager = tm
+        return tm
 
     def test_register_players(self, turn_manager):
         """Test registering players."""
         red = MockPlayer('red')
         blue = MockPlayer('blue')
-        turn_manager.game.turn_manager = turn_manager
+        turn_manager.game.red_player = red
+        turn_manager.game.blue_player = blue
 
         turn_manager.register_players(red, blue)
 
@@ -135,6 +143,8 @@ class TestTurnManagerTurnSwitching:
         tm.scene = MockScene()
         tm.red_player = MockPlayer('red')
         tm.blue_player = MockPlayer('blue')
+        game.red_player = tm.red_player
+        game.blue_player = tm.blue_player
         return tm
 
     def test_switch_turn_blue_to_red(self, turn_manager_with_players):
