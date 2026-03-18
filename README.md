@@ -63,6 +63,45 @@ To play the development version, follow the instructions below:
    python app.py
    ```
 
+### ⚙️ Makefile-based Setup (Recommended)
+
+This repository includes a root `Makefile` to simplify setup, testing, and common development tasks.
+
+1. Bootstrap environment and install runtime dependencies:
+   ```bash
+   make bootstrap
+   ```
+2. (Optional) Install development tooling from `requirements-dev.txt`:
+   ```bash
+   make install-dev
+   ```
+3. Run the game:
+   ```bash
+   make run
+   ```
+4. Run tests:
+   ```bash
+   make test
+   ```
+5. Run full quality checks before opening a PR:
+   ```bash
+   make check
+   ```
+
+Useful targets:
+
+- `make help` - List available commands
+- `make info` - Print environment configuration
+- `make activate-linux` - Print Linux/macOS virtual environment activation command
+- `make activate-windows` - Print Windows PowerShell and CMD activation commands
+- `make lint` - Run optional lint checks if linters are installed
+- `make check` - Run lint + tests (recommended before PR)
+- `make format` - Run optional formatter if installed
+- `make clean` - Remove Python cache files
+- `make deep-clean` - Remove cache files and virtual environment
+
+> Note: `make` cannot keep a shell activated after the command exits. Use the printed activation command in your terminal if you want to activate the virtual environment manually.
+
 ## 📦 Standalone Executable Release
 
 We also offer a **standalone executable** version for Windows. This version requires no additional setup—just download and play!

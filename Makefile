@@ -20,7 +20,7 @@ else
 	PLATFORM_NAME := linux
 endif
 
-.PHONY: help info venv install install-dev bootstrap upgrade-pip run test test-unit test-pytest lint format clean deep-clean activate-linux activate-windows check-venv
+.PHONY: help info venv install install-dev bootstrap upgrade-pip run test test-unit test-pytest lint check format clean deep-clean activate-linux activate-windows check-venv
 
 help:
 	@echo "QuoridorX development commands"
@@ -35,6 +35,7 @@ help:
 	@echo "  make run              Run game app (src/app.py) in venv"
 	@echo "  make test             Run tests (pytest if available, fallback to unittest)"
 	@echo "  make lint             Run optional linters if installed (ruff, flake8)"
+	@echo "  make check            Run lint + test (recommended before PR)"
 	@echo "  make format           Run optional formatter if installed (black)"
 	@echo ""
 	@echo "Environment helpers:"
@@ -121,6 +122,9 @@ lint: check-venv
 	else \
 		echo "flake8 not installed, skipping."; \
 	fi
+
+check: lint test
+	@echo "Quality checks complete."
 
 format: check-venv
 	@if "$(VENV_PYTHON)" -m black --version >/dev/null 2>&1; then \
